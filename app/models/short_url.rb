@@ -13,4 +13,8 @@ class ShortUrl < ActiveRecord::Base
   def assign_url
     self.short_url = SecureRandom.urlsafe_base64
   end
+
+  def self.link_exists?(user_id, long_url_id)
+    !ShortUrl.where( :user_id => user_id, :long_url_id => long_url_id ).empty?
+  end
 end
