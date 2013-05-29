@@ -6,5 +6,6 @@ class User < ActiveRecord::Base
                        :length =>  { :in => 2..10 }
 
   has_many :short_urls
+  has_many :visits
 
 end

@@ -5,6 +5,7 @@ class ShortUrl < ActiveRecord::Base
 
   belongs_to :long_url
   belongs_to :user
+  has_many :visits
 
   validates :long_url_id, :presence => true
   validates :user_id, :presence => true
