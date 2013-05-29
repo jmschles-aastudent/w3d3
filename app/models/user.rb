@@ -5,5 +5,6 @@ class User < ActiveRecord::Base
                        :uniqueness => true,
                        :length =>  { :in => 2..10 }
 
+  has_many :short_urls
 
 end
