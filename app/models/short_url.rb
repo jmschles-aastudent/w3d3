@@ -6,6 +6,8 @@ class ShortUrl < ActiveRecord::Base
   belongs_to :long_url
   belongs_to :user
   has_many :visits
+  has_many :taggings
+  has_many :tag_topics, :through => :taggings
 
   validates :long_url_id, :presence => true
   validates :user_id, :presence => true
