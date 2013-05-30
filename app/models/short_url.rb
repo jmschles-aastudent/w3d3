@@ -1,7 +1,7 @@
 class ShortUrl < ActiveRecord::Base
   attr_accessible :long_url, :user
 
-  before_save :assign_url
+  before_create :assign_url
 
   belongs_to :long_url
   belongs_to :user

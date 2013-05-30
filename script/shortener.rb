@@ -38,6 +38,7 @@ def short_url_handler(current_user)
   puts "Enter a short URL to launch: "
   short_url = ShortUrl.where( :short_url => gets.chomp ).first
   Visit.create( :user => current_user, :short_url => short_url )
+  puts short_url.comment if short_url.comment
   Launchy.open( short_url.long_url.long_url )
 end
 
@@ -54,8 +55,13 @@ def add_tag(current_user)
   Tagging.create( :short_url => short_url, :tag_topic => tag_topic )
 end
 
-def add_comment
-
+def add_comment(current_user)
+  puts "Enter a short url to comment on: "
+  short_url = ShortUrl.where( :user_id => current_user.id,
+                              :short_url => gets.chomp ).first
+  puts "Enter your comment: "
+  short_url.comment = gets.chomp
+  short_url.save!
 end
 
 def get_stats
@@ -70,6 +76,7 @@ def get_stats
   puts "Number of visits: #{num_visits}"
   puts "Number of visits in last 10 minutes: #{num_recent_visits}"
   puts "Tags: #{associated_tags}"
+  puts "Comment: #{short_url.comment}"
 end
 
 def choose_action(current_user)
@@ -77,8 +84,9 @@ def choose_action(current_user)
   puts "(S) to obtain a short URL to use, "
   puts "(O) to open a webpage from an existing short URL, "
   puts "(T) to add a tag to a short URL, "
-  puts "(G) to get stats about a short URL, or "
-  puts "(C) to add a comment to a short URL."
+  puts "(C) to add a comment to a short URL, or "
+  puts "(G) to get stats about a short URL."
+
   choice = gets.chomp.downcase
   case choice
   when 's'
@@ -87,6 +95,8 @@ def choose_action(current_user)
     short_url_handler(current_user)
   when 't'
     add_tag(current_user)
+  when 'c'
+    add_comment(current_user)
   when 'g'
     get_stats
   end
