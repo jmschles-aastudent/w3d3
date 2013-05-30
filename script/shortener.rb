@@ -11,6 +11,7 @@ def login
   when 'l'
     puts "Enter your username: "
     username = gets.chomp.downcase
+    raise "Not a valid user" unless User.where( :username => username ).first
     User.where( :username => username ).first
   else
     puts "Invalid choice, have a nice day."
@@ -35,8 +36,7 @@ end
 
 def short_url_handler(current_user)
   puts "Enter a short URL to launch: "
-  short_url_text = gets.chomp
-  short_url = ShortUrl.where( :short_url => short_url_text ).first
+  short_url = ShortUrl.where( :short_url => gets.chomp ).first
   Visit.create( :user => current_user, :short_url => short_url )
   Launchy.open( short_url.long_url.long_url )
 end
@@ -50,9 +50,12 @@ def add_tag(current_user)
   tag_name = gets.chomp.downcase
   tag_topic = TagTopic.where( :tag_name => tag_name ).first
   raise "Tag doesn't exist" unless tag_topic
-  raise "Already tagged!" if Tagging.where( :short_url => short_url,
-                                            :tag_topic => tag_topic ).first
+  raise "Already tagged!" if short_url.tag_topics.include?(tag_topic)
   Tagging.create( :short_url => short_url, :tag_topic => tag_topic )
+end
+
+def add_comment
+
 end
 
 def get_stats
@@ -60,8 +63,8 @@ def get_stats
   short_url = ShortUrl.where( :short_url => gets.chomp ).first
   num_visits = short_url.visits.count
   num_recent_visits = short_url.visits.where( "created_at > ?", Time.now - 10.minutes ).count
-  associated_tags = short_url.taggings.map do |tagging|
-    TagTopic.where( :id => tagging.tag_topic_id ).first.tag_name
+  associated_tags = short_url.tag_topics.map do |topic|
+    topic.tag_name
   end.join(", ")
 
   puts "Number of visits: #{num_visits}"
@@ -73,8 +76,9 @@ def choose_action(current_user)
   puts "It's time to choose! "
   puts "(S) to obtain a short URL to use, "
   puts "(O) to open a webpage from an existing short URL, "
-  puts "(T) to add a tag to a short URL, or"
-  puts "(G) to get stats about a short URL."
+  puts "(T) to add a tag to a short URL, "
+  puts "(G) to get stats about a short URL, or "
+  puts "(C) to add a comment to a short URL."
   choice = gets.chomp.downcase
   case choice
   when 's'
@@ -90,5 +94,10 @@ end
 
 current_user = login
 while true
-  choose_action(current_user)
+  begin
+    choose_action(current_user)
+  rescue StandardError => e
+    puts "Error: #{e.message}"
+    retry
+  end
 end
