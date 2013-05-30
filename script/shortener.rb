@@ -1,5 +1,5 @@
 def login
-  puts "'C' to create a new user, or 'L' to log in an existing one: "
+  puts "(C) to create a new user, or (L) to log in an existing one: "
   choice = gets.chomp.downcase
   case choice
   when 'c'
@@ -41,16 +41,50 @@ def short_url_handler(current_user)
   Launchy.open( short_url.long_url.long_url )
 end
 
+def add_tag(current_user)
+  puts "Enter a short url to tag: "
+  short_url = ShortUrl.where( :user_id => current_user.id,
+                              :short_url => gets.chomp ).first
+  puts "Enter a tag from the following list: "
+  puts "'news', 'funny', 'shopping', 'music', 'sports'"
+  tag_name = gets.chomp.downcase
+  tag_topic = TagTopic.where( :tag_name => tag_name ).first
+  raise "Tag doesn't exist" unless tag_topic
+  raise "Already tagged!" if Tagging.where( :short_url => short_url,
+                                            :tag_topic => tag_topic ).first
+  Tagging.create( :short_url => short_url, :tag_topic => tag_topic )
+end
+
+def get_stats
+  puts "Enter a short URL to check out: "
+  short_url = ShortUrl.where( :short_url => gets.chomp ).first
+  num_visits = short_url.visits.count
+  num_recent_visits = short_url.visits.where( "created_at > ?", Time.now - 10.minutes ).count
+  associated_tags = short_url.taggings.map do |tagging|
+    TagTopic.where( :id => tagging.tag_topic_id ).first.tag_name
+  end.join(", ")
+
+  puts "Number of visits: #{num_visits}"
+  puts "Number of visits in last 10 minutes: #{num_recent_visits}"
+  puts "Tags: #{associated_tags}"
+end
+
 def choose_action(current_user)
   puts "It's time to choose! "
-  puts "'S' to obtain a short URL to use, or "
-  puts "'O' to open a webpage from an existing short URL. "
+  puts "(S) to obtain a short URL to use, "
+  puts "(O) to open a webpage from an existing short URL, "
+  puts "(T) to add a tag to a short URL, or"
+  puts "(G) to get stats about a short URL."
   choice = gets.chomp.downcase
   case choice
   when 's'
     long_url_handler(current_user)
   when 'o'
     short_url_handler(current_user)
+  when 't'
+    add_tag(current_user)
+  when 'g'
+    get_stats
   end
 end
 
